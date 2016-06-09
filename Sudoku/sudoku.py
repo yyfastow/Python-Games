@@ -1,24 +1,11 @@
 import copy
 import json
 import os
+import random
 import sys
 
+from sudoku_sheets import sudoku_list
 
-sudoku_sheet = [{"A1":7, "A2":0, "A3":1, "B1":4, "B2": 6, "B3":0,
-                 "C1":0, "C2":8, "C3":0}, {"A4":0, "A5": 5, "A6":8,
-                 "B4":1, "B5":7, "B6":0, "C4":0, "C5": 4, "C6":0},
-                 {"A7":9, "A8":2, "A9":0, "B7":8, "B8": 0, "B9":0,
-                 "C7":0, "C8":6, "C9":0},
-                {"D1":0, "D2": 0, "D3":9,"E1":0, "E2":0, "E3":6,
-                 "F1":0, "F2": 0, "F3":4}, {"D4":0, "D5": 0, "D6":0,
-                 "E4":4, "E5":0, "E6":7, "F4":0, "F5": 0, "F6":0},
-                 {"D7":1, "D8":0, "D9":0, "E7":2, "E8": 0, "E9":0,
-                 "F7":5, "F8":0, "F9":0},
-                {"G1":0, "G2":9, "G3":0, "H1":0, "H2": 0, "H3":3,
-                 "I1":0, "I2":4, "I3":7}, {"G4":0, "G5": 6, "G6":0,
-                 "H4":0, "H5":8, "H6":1, "I4":9, "I5": 2, "I6":0},
-                 {"G7":0, "G8":1, "G9":0, "H7":0, "H8": 9, "H9":2,
-                 "I7":6, "I8":0, "I9":8}]
 
 
 def clear():
@@ -48,7 +35,7 @@ def draw_board(sudoku_board):
         print("")
     print("*" * 21)
 
-def add(sudoku_board, num, key, box, action):
+def add(sudoku_board, sudoku_sheet, num, key, box, action):
     """ Adds or changes number from given box """
     saved_game = open('saved_games.json', 'w')
     sudoku_board[key][box] = int(num)
@@ -57,12 +44,12 @@ def add(sudoku_board, num, key, box, action):
     saved_game.closed
     saved_game = open('saved_games.json', 'r')
     sudoku_json = json.load(saved_game)
-    game(sudoku_json)
+    game(sudoku_json, sudoku_sheet)
     saved_game.closed
     print("Game was saved")
 
 
-def delete(sudoku_board, key, box):
+def delete(sudoku_board, sudoku_sheet, key, box):
     """ Deletes given box """
     saved_game = open('saved_games.json', 'w')
     print("deleted {} in {}.".format(sudoku_board[key][box], box))
@@ -71,7 +58,7 @@ def delete(sudoku_board, key, box):
     saved_game.closed
     saved_game = open('saved_games.json', 'r')
     sudoku_json = json.load(saved_game)
-    game(sudoku_json)
+    game(sudoku_json, sudoku_sheet)
     saved_game.closed
     
 
@@ -146,15 +133,15 @@ def validator(box, sudoku_board, original, command, num=0):
             if original[key][box] == 0 and sudoku_board[key][box] != 0:
                 if command == 'add':
                     action = 'Changing {} to'.format(sudoku_box)
-                    add(sudoku_board, num, key, box, action)
+                    add(sudoku_board, num, original, key, box, action)
                 elif command == 'delete':
-                    delete(sudoku_board, key, box)
+                    delete(sudoku_board, original, key, box)
             elif original[key][box] != 0:
                 print("You can't delete or change numbers from the original")
                 turn(sudoku_board, original)
             elif sudoku_board[key][box] == 0:
                 if command == 'add':
-                    add(sudoku_board, num, key, box, action)
+                    add(sudoku_board, original, num, key, box, action)
                 else:
                     print("Allready empty no need to delete")
                     turn(sudoku_board, original)
@@ -231,21 +218,29 @@ def turn(sudoku_board, original):
 
 def open_file():
     """ starts the game by opening saved file or restarting """
-    new_game = input("New Game:  ")
+    option = input("restart/new:  ")
     sure = 'no'
-    if new_game.lower() == 'yes':
-        sure = input("are you sure (old data will be lost):  ")
-    if sure.lower() == 'yes':
-        sudoku_board = copy.deepcopy(sudoku_sheet)
-        new_game(sudoku_board)
+    sudoku_sheet = {}
+    if option.lower() == 'new':
+        sudoku_sheet = random.choice(sudoku_list)
+        saved_type = open('type_sudoku.json', 'w')
+        json.dump(sudoku_sheet, saved_type, sort_keys=True)
+        saved_type.close
     else:
+        saved_sheet = open('type_sudoku.json', 'r')
+        sudoku_sheet = json.load(saved_sheet)
+        saved_sheet.close
+    if option.lower() != 'restart' and option.lower() != 'new':
         saved_game = open('saved_games.json', 'r')
         sudoku_json = json.load(saved_game)
-        game(sudoku_json)
         saved_game.closed
+        game(sudoku_json, sudoku_sheet)
+    else:
+        sudoku_board = copy.deepcopy(sudoku_sheet)
+        new_game(sudoku_board, sudoku_sheet)
 
 
-def new_game(sudoku_board):
+def new_game(sudoku_board, sudoku_sheet):
     """ the loop of a new game"""
     clear()
     print("welcome to sudoku!")
@@ -260,7 +255,7 @@ def new_game(sudoku_board):
         draw_board(sudoku_sheet)
 
 
-def game(sudoku_board):
+def game(sudoku_board, sudoku_sheet):
     clear()
     print("welcome to sudoku!")
     rules()

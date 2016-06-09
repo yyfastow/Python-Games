@@ -7,11 +7,11 @@ ships = {'Aircraft carrier': 5, 'Battleship': 4, 'Submarine': 3,
 
 
 class Player:
-    ships = ships
     
-    def __init__(self, name, board, pk):
+    def __init__(self, name, board, ships, pk):
         self.name = name
         self.board = board
+        self.ships = ships
         self.pk = pk
 
     def __str__(self):
