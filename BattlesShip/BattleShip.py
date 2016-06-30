@@ -356,7 +356,7 @@ def start_game():
         player1 = Player(get_name(1), get_board(1), get_ships(1), 1)
         player2 = Player(get_name(2), get_board(2), get_ships(2), 2)
         while True:
-            options(player, other_player)
+            options(player1, player2)
             turn(player1, player2)
             turn(player2, player1)
 
