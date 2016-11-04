@@ -96,5 +96,4 @@ ships display as O, + are missed shots and X re hits
     
 ### Tic Tac Toe
 
-    Tow layer Tic Tac Toe
 
